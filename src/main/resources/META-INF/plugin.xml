@@ -1,0 +1,25 @@
+<idea-plugin>
+    <resource-bundle>cn.fj.loli.binarytemplatesupport.BinaryTemplateBundle</resource-bundle>
+
+    <depends>com.intellij.modules.lang</depends>
+    <depends optional="true" config-file="cn.fj.loli.binarytemplatesupport-withHexSupport.xml">cn.fj.loli.hexsupport</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Binary Template" language="BinaryTemplate"
+                  implementationClass="cn.fj.loli.binarytemplatesupport.BtFileType"
+                  fieldName="INSTANCE" extensions="bt"/>
+        <lang.parserDefinition language="BinaryTemplate"
+                               implementationClass="cn.fj.loli.binarytemplatesupport.psi.BtParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="BinaryTemplate"
+                                       implementationClass="cn.fj.loli.binarytemplatesupport.highlighting.BtSyntaxHighlighterFactory"/>
+        <completion.contributor language="BinaryTemplate"
+                                implementationClass="cn.fj.loli.binarytemplatesupport.completion.BtCompletionContributor"/>
+        <lang.commenter language="BinaryTemplate"
+                        implementationClass="cn.fj.loli.binarytemplatesupport.editor.BtCommenter"/>
+        <lang.braceMatcher language="BinaryTemplate"
+                           implementationClass="cn.fj.loli.binarytemplatesupport.editor.BtBraceMatcher"/>
+        <lang.quoteHandler language="BinaryTemplate"
+                           implementationClass="cn.fj.loli.binarytemplatesupport.editor.BtQuoteHandler"/>
+        <colorSettingsPage implementation="cn.fj.loli.binarytemplatesupport.highlighting.BtColorSettingsPage"/>
+    </extensions>
+</idea-plugin>

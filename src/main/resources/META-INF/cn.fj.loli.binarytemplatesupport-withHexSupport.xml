@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="cn.fj.loli.hexsupport">
+        <binaryStructureProvider implementation="cn.fj.loli.binarytemplatesupport.integration.HexBtStructureProvider"/>
+    </extensions>
+</idea-plugin>

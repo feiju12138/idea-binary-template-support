@@ -51,6 +51,8 @@ The resulting ZIP is written to `build/distributions/`.
 
 ## Compatibility
 
+- Current release: Binary Template Support 1.0.1
 - IntelliJ IDEA 2025.1 or later (build 251+)
+- Hex Support 3.0.0 or later for optional Binary Structure analysis
 - JDK 21 for building from source
 - Gradle 9 or later

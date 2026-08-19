@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.fj.loli"
-version = "1.0.0"
+version = "1.0.1"
 
 val localIdePath = providers.gradleProperty("localIdePath")
 val hexSupportPluginPath = providers.gradleProperty("hexSupportPluginPath")
@@ -23,11 +23,12 @@ dependencies {
         }
 
         when {
-            hexSupportPluginPath.isPresent -> localPlugin(hexSupportPluginPath.get())
-            adjacentHexSupport.asFile.isFile -> localPlugin(adjacentHexSupport.asFile)
-            else -> plugin("cn.fj.loli.hexsupport:3.0.0")
+            hexSupportPluginPath.isPresent -> testLocalPlugin(hexSupportPluginPath.get())
+            adjacentHexSupport.asFile.isFile -> testLocalPlugin(adjacentHexSupport.asFile)
+            else -> testPlugin("cn.fj.loli.hexsupport:3.0.0")
         }
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
     }
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
@@ -42,10 +43,11 @@ intellijPlatform {
         version = project.version.toString()
         description = """
             <p>Language support for 010 Editor Binary Template (.bt) files in IntelliJ-based IDEs.</p>
-            <p>Provides syntax highlighting, completion for the official language vocabulary, comment support, brace matching, and optional binary structure analysis when Hex Support is installed.</p>
+            <p>Provides syntax highlighting, completion for the official language vocabulary, comment support, brace matching, and optional binary structure analysis with Hex Support 3.0.0 or later.</p>
         """.trimIndent()
         changeNotes = """
             <ul>
+                <li>1.0.1: Make the optional Hex Support integration version-aware at runtime, so Hex Support 2.x remains loadable while 3.0.0 and later provide binary structure analysis, and avoid unresolved 3.0 API packages during Marketplace verification.</li>
                 <li>1.0.0: Add .bt file recognition, native editor syntax highlighting, completion for keywords, built-in types, template attributes, constants and official built-in functions, comment and brace support, configurable colors, and an optional Hex Support structure provider.</li>
             </ul>
         """.trimIndent()

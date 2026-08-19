@@ -51,6 +51,8 @@ gradle test buildPlugin -PlocalIdePath=/path/to/IntelliJ-IDEA
 
 ## 兼容性
 
+- 当前版本：Binary Template Support 1.0.1
 - IntelliJ IDEA 2025.1 或更高版本（build 251+）
+- 可选的 Binary Structure 分析需要 Hex Support 3.0.0 或更高版本
 - 从源码构建需要 JDK 21
 - Gradle 9 或更高版本

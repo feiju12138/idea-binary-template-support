@@ -1,10 +1,5 @@
 package cn.fj.loli.binarytemplatesupport.runtime;
 
-import cn.fj.loli.hexsupport.structure.BinarySnapshot;
-import cn.fj.loli.hexsupport.structure.StructureAnalysisResult;
-import cn.fj.loli.hexsupport.structure.StructureDiagnostic;
-import cn.fj.loli.hexsupport.structure.StructureNode;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -36,15 +31,15 @@ public final class BtTemplateEngine {
     private static final int MAX_NODES = 250_000;
     private static final int MAX_STRING_BYTES = 4 * 1024 * 1024;
 
-    public StructureAnalysisResult run(Path template, BinarySnapshot input, BooleanSupplier canceled) {
+    public TemplateAnalysisResult run(Path template, BinaryInput input, BooleanSupplier canceled) {
         Objects.requireNonNull(template, "template");
         Objects.requireNonNull(input, "input");
         try {
             String source = readTemplateSource(template);
             return run(template, source, input, canceled);
         } catch (IOException exception) {
-            return new StructureAnalysisResult(template, input.revision(), List.of(),
-                    List.of(new StructureDiagnostic(StructureDiagnostic.Severity.ERROR, 0, 0,
+            return new TemplateAnalysisResult(template, input.revision(), List.of(),
+                    List.of(new TemplateDiagnostic(TemplateDiagnostic.Severity.ERROR, 0, 0,
                             "Unable to read template: " + exception.getMessage())), List.of());
         }
     }
@@ -80,28 +75,28 @@ public final class BtTemplateEngine {
         return true;
     }
 
-    public StructureAnalysisResult run(Path template, String source, BinarySnapshot input, BooleanSupplier canceled) {
-        List<StructureDiagnostic> diagnostics = new ArrayList<>();
+    public TemplateAnalysisResult run(Path template, String source, BinaryInput input, BooleanSupplier canceled) {
+        List<TemplateDiagnostic> diagnostics = new ArrayList<>();
         List<String> output = new ArrayList<>();
         try {
             Parser parser = new Parser(source);
             Program program = parser.parseProgram();
             Runtime runtime = new Runtime(input, canceled == null ? () -> false : canceled, diagnostics, output);
             List<MutableNode> nodes = runtime.execute(program);
-            return new StructureAnalysisResult(template, input.revision(), freeze(nodes), diagnostics, output);
+            return new TemplateAnalysisResult(template, input.revision(), freeze(nodes), diagnostics, output);
         } catch (ParseFailure failure) {
-            diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.ERROR, failure.line, failure.column, failure.getMessage()));
-            return new StructureAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
+            diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.ERROR, failure.line, failure.column, failure.getMessage()));
+            return new TemplateAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
         } catch (CanceledFailure ignored) {
-            diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.INFO, 0, 0, "Template execution canceled."));
-            return new StructureAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
+            diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.INFO, 0, 0, "Template execution canceled."));
+            return new TemplateAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
         } catch (RuntimeFailure failure) {
-            diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.ERROR, failure.line, failure.column, failure.getMessage()));
-            return new StructureAnalysisResult(template, input.revision(), freeze(failure.partialNodes), diagnostics, output);
+            diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.ERROR, failure.line, failure.column, failure.getMessage()));
+            return new TemplateAnalysisResult(template, input.revision(), freeze(failure.partialNodes), diagnostics, output);
         } catch (RuntimeException failure) {
-            diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.ERROR, 0, 0,
+            diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.ERROR, 0, 0,
                     "Template runtime failed: " + rootMessage(failure)));
-            return new StructureAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
+            return new TemplateAnalysisResult(template, input.revision(), List.of(), diagnostics, output);
         }
     }
 
@@ -113,10 +108,10 @@ public final class BtTemplateEngine {
         return current.getMessage() == null ? current.getClass().getSimpleName() : current.getMessage();
     }
 
-    private static List<StructureNode> freeze(List<MutableNode> nodes) {
-        List<StructureNode> result = new ArrayList<>(nodes.size());
+    private static List<TemplateNode> freeze(List<MutableNode> nodes) {
+        List<TemplateNode> result = new ArrayList<>(nodes.size());
         for (MutableNode node : nodes) {
-            result.add(new StructureNode(node.name, node.type, node.value, node.offset, node.size, node.format,
+            result.add(new TemplateNode(node.name, node.type, node.value, node.offset, node.size, node.format,
                     node.foregroundColor, node.backgroundColor, node.comment, freeze(node.children)));
         }
         return result;
@@ -1234,9 +1229,9 @@ public final class BtTemplateEngine {
     private record ArrayType(String name, TemplateType element, long count, Attributes attributes) implements TemplateType {}
 
     private static final class Runtime {
-        private final BinarySnapshot input;
+        private final BinaryInput input;
         private final BooleanSupplier canceled;
-        private final List<StructureDiagnostic> diagnostics;
+        private final List<TemplateDiagnostic> diagnostics;
         private final List<String> output;
         private final Map<String, TemplateType> types = new HashMap<>();
         private final Map<String, FunctionDefinition> functions = new HashMap<>();
@@ -1251,7 +1246,7 @@ public final class BtTemplateEngine {
         private String currentForeground;
         private String currentBackground;
 
-        private Runtime(BinarySnapshot input, BooleanSupplier canceled, List<StructureDiagnostic> diagnostics, List<String> output) {
+        private Runtime(BinaryInput input, BooleanSupplier canceled, List<TemplateDiagnostic> diagnostics, List<String> output) {
             this.input = input;
             this.canceled = canceled;
             this.diagnostics = diagnostics;
@@ -1716,7 +1711,7 @@ public final class BtTemplateEngine {
             if (read instanceof LiteralExpression literal && literal.value instanceof String functionName) {
                 FunctionDefinition function = functions.get(functionName);
                 if (function == null) {
-                    diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.WARNING, 0, 0,
+                    diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.WARNING, 0, 0,
                             "Read function is not defined: " + functionName));
                     return;
                 }
@@ -1924,7 +1919,7 @@ public final class BtTemplateEngine {
                 case "RequiresVersion", "BitfieldDisablePadding", "BitfieldEnablePadding", "SetReadOnly", "SetStyle",
                      "OutputPaneClear", "ThemeAutoScaleColors" -> 0L;
                 case "Assert" -> {
-                    if (!truth(argument(arguments, 0))) diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.WARNING,
+                    if (!truth(argument(arguments, 0))) diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.WARNING,
                             call.line(), call.column(), arguments.size() > 1 ? text(argument(arguments, 1)) : "Assertion failed"));
                     yield 0L;
                 }
@@ -1957,7 +1952,7 @@ public final class BtTemplateEngine {
                 }
                 case "Warning" -> {
                     String message = text(argument(arguments, 0));
-                    diagnostics.add(new StructureDiagnostic(StructureDiagnostic.Severity.WARNING, call.line(), call.column(), message));
+                    diagnostics.add(new TemplateDiagnostic(TemplateDiagnostic.Severity.WARNING, call.line(), call.column(), message));
                     yield 0L;
                 }
                 case "Printf" -> {

@@ -6,12 +6,12 @@ plugins {
 }
 
 group = "cn.fj.loli"
-version = "1.0.1"
+version = "1.0.2"
 
 val localIdePath = providers.gradleProperty("localIdePath")
 val hexSupportPluginPath = providers.gradleProperty("hexSupportPluginPath")
 val adjacentHexSupport = layout.projectDirectory.file(
-    "../idea-hex-support/build/distributions/idea-hex-support-3.0.0.zip"
+    "../idea-hex-support/build/distributions/idea-hex-support-3.0.1.zip"
 )
 
 dependencies {
@@ -43,10 +43,11 @@ intellijPlatform {
         version = project.version.toString()
         description = """
             <p>Language support for 010 Editor Binary Template (.bt) files in IntelliJ-based IDEs.</p>
-            <p>Provides syntax highlighting, completion for the official language vocabulary, comment support, brace matching, and optional binary structure analysis with Hex Support 3.0.0 or later.</p>
+            <p>Provides syntax highlighting, completion for the official language vocabulary, comment support, brace matching, and optional Hex Support structure analysis for 010 Editor Binary Template files with Hex Support 3.0.0 or later.</p>
         """.trimIndent()
         changeNotes = """
             <ul>
+                <li>1.0.2: Add the shared Hex Support structure analysis phrase to Marketplace metadata so Hex Support can discover this provider without maintaining a plugin ID.</li>
                 <li>1.0.1: Make the optional Hex Support integration version-aware at runtime, so Hex Support 2.x remains loadable while 3.0.0 and later provide binary structure analysis, and avoid unresolved 3.0 API packages during Marketplace verification.</li>
                 <li>1.0.0: Add .bt file recognition, native editor syntax highlighting, completion for keywords, built-in types, template attributes, constants and official built-in functions, comment and brace support, configurable colors, and an optional Hex Support structure provider.</li>
             </ul>
